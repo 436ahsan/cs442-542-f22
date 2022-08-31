@@ -89,7 +89,7 @@ double norm(int vector_size, double* vals)
 
 
 
-void print_data(int n_access, double start, double end, double result)
+void print_data(long n_access, double start, double end, double result)
 {
     double seconds = get_seconds(start, end);
     long bytes = (n_access*sizeof(double));
@@ -104,7 +104,7 @@ int main(int argc, char* argv[])
 
     int read = 1 - atoi(argv[1]);
 
-    int n_access = 1000000000;
+    long n_access = 805306368;
     int vector_size = (2*L3)/sizeof(double);
     int n_iter = n_access / vector_size;
     double* vals = (double*)malloc(vector_size*sizeof(double));
