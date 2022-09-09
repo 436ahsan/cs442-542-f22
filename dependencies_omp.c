@@ -19,7 +19,7 @@ void loop(int n, float* x, float* y, float* z, int n_iter)
 {
     for (int iter = 0; iter < n_iter; iter++)
     {
-#pragma omp simd 
+#pragma omp simd aligned(x, y, z) 
         for (int i = 1; i < n; i++)
         {
             z[i] = x[i] * y[i] * z[i];            
@@ -65,7 +65,6 @@ void loop_unrolled(int n, float* x, float* y, float* z, int n_iter)
 {
     for (int iter = 0; iter < n_iter; iter++)
     {
-#pragma omp simd safelen(1)
         for (int i = 4; i < n; i+=4)
         {
             z[i] = x[i] * y[i] * z[i-4];
@@ -79,6 +78,7 @@ void loop_unrolled(int n, float* x, float* y, float* z, int n_iter)
 double norm(int n, float* x)
 {
     double sum = 0; 
+#pragma omp simd reduction(+:sum)
     for (int i = 0; i < n; i++)
         sum += (x[i]*x[i]);
     return sum;
