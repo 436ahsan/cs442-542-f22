@@ -21,20 +21,8 @@ void matmat(int n, double* A, double*  B, double* C, int n_iter)
     double val;
     for (int iter = 0; iter < n_iter; iter++)
     {
-        for (int i = 0; i < n; i++)
-        {
-            for (int k = 0; k < n; k++)
-                C[i*n+k] = 0;
-
-            for (int j = 0; j < n; j++)
-            {
-                val = A[i*n+j];
-                for (int k = 0; k < n; k++)
-                {
-                    C[i*n+k] += val * B[j*n+k];
-                }
-            }
-        }
+        // Do Matrix-Multiplication HERE
+        // Make sure to initalize C each time to 0 if you want consistent results
     }
 }
 
