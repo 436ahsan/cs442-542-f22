@@ -53,9 +53,9 @@ int main(int argc, char* argv[])
     int n = atoi(argv[1]);
     int n_iter = n_access / (n*n*n);
 
-    double* A = (double*)malloc(n*n*sizeof(double));
-    double* B = (double*)malloc(n*n*sizeof(double));
-    double* C = (double*)malloc(n*n*sizeof(double));
+    double* A = new double[n*n];
+    double* B = new double[n*n];
+    double* C = new double[n*n];
 
     for (int i = 0; i < n; i++)
     {
@@ -74,10 +74,9 @@ int main(int argc, char* argv[])
     end = get_time();
     printf("N %d, Time Per MatMat %e\n", n, (end - start)/n_iter);
 
-    free(A);
-    free(B);
-    free(C);
-        
+    delete[] A;
+    delete[] B; 
+    delete[] C;
 
     return 0;
 }
