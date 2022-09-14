@@ -39,7 +39,7 @@ int main(int argc, char* argv[])
     }
 
     int n = atoi(argv[1]);
-    int n_iter = n_access / (n*n*n);
+    int n_iter = (n_access / (n*n*n)) + 1;
 
     double* A = new double[n*n];
     double* B = new double[n*n];
