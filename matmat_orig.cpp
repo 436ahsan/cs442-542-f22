@@ -32,13 +32,17 @@ int main(int argc, char* argv[])
     double start, end;
     int n_access = 1000000000;
     
-    if (argc == 1)
+    if (argc < 3)
     {
-        printf("Pass Matrix Dimension n as Command Line Arg\n");
+        printf("Need Matrix Dimemsion n and step size k passed as Command Line Arguments (e.g. ./matmat 8 2)\n");
         return 0;
     }
 
+    // Read Matrix Dimension from Command Line
     int n = atoi(argv[1]);
+
+    // Read Step Size (k) for part (c) from Command Line
+    int k = atoi(argv[2]);
     int n_iter = (n_access / (n*n*n)) + 1;
 
     double* A = new double[n*n];
