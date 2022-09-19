@@ -47,9 +47,23 @@
 // MPI_Exscan(void* sendbuf, void* recvbuf, int count, MPI_Datatype datatype,
 //         MPI_Op op, MPI_Comm comm)
 //
-//
+// MPI_Reduce_scatter(const void *sendbuf, void *recvbuf, const int recvcounts[],
+//                     MPI_Datatype datatype, MPI_Op op, MPI_Comm comm)
 
 
+// Initialize values to round robin processes
+// E.g. P0 init_vals={0, num_procs, 2*num_procs, ...}
+//      P1 init_vals={1, num_procs+1, 2*num_procs+1, ...}
+void initialize(int* vals, int n)
+{
+    int rank, num_procs;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
+
+    for (int i = 0; i < n; i++)
+        vals[i] = i*num_procs + rank;
+
+}
 
 
 
@@ -65,10 +79,8 @@ void reduce(int n)
 
     int* init_vals = (int*)malloc(n*sizeof(int));
     int* reduce_vals = (int*)malloc(n*sizeof(int));
-    for (int i = 0; i < n; i++)
-    {
-        init_vals[i] = rank + i + 1;
-    }
+
+    initialize(init_vals, n);
 
     MPI_Reduce(init_vals, reduce_vals, n, MPI_INT, MPI_MAX, 0, MPI_COMM_WORLD);
 
@@ -97,10 +109,8 @@ void allreduce(int n, int print_proc)
 
     int* init_vals = (int*)malloc(n*sizeof(int));
     int* reduce_vals = (int*)malloc(n*sizeof(int));
-    for (int i = 0; i < n; i++)
-    {
-        init_vals[i] = rank + (i+1);
-    }
+
+    initialize(init_vals, n);
 
     MPI_Allreduce(init_vals, reduce_vals, n, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
 
@@ -186,15 +196,12 @@ void gather(int n)
     MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
 
     int* init_vals = (int*)malloc(n*sizeof(int));
+    initialize(init_vals, n);
+
     int* recv_vals;
     if (rank == 0) 
     {
         recv_vals = (int*)malloc(n*num_procs*sizeof(int));
-    }
-
-    for (int i = 0; i < n; i++)
-    {
-        init_vals[i] = rank*n + i + 1;
     }
 
     MPI_Gather(init_vals, n, MPI_INT, recv_vals, n, MPI_INT, 0, MPI_COMM_WORLD);
@@ -221,11 +228,8 @@ void allgather(int n, int print_proc)
     MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
 
     int* init_vals = (int*)malloc(n*sizeof(int));
+    initialize(init_vals, n);
     int* recv_vals = (int*)malloc(n*num_procs*sizeof(int));
-    for (int i = 0; i < n; i++)
-    {
-        init_vals[i] = rank*n + i + 1;
-    }
 
     MPI_Allgather(init_vals, n, MPI_INT, recv_vals, n, MPI_INT, MPI_COMM_WORLD);
 
@@ -271,6 +275,92 @@ void alltoall(int n)
     free(recv_vals);
 }
 
+
+// MPI_Scan(void* sendbuf, void* recvbuf, int count, MPI_Datatype datatype,
+//         MPI_Op op, MPI_Comm comm)
+//
+void scan(int n)
+{
+    int rank, num_procs;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
+
+    int* init_vals = (int*)malloc(n*sizeof(int));
+    int* reduce_vals = (int*)malloc(n*sizeof(int));
+
+    initialize(init_vals, n);
+
+    MPI_Scan(init_vals, reduce_vals, n, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+
+    for (int i = 0; i < n; i++)
+    {
+        printf("Rank %d, Orig Val[%d] = %d Sum Vals (Scan)[%d] = %d\n", rank, i, init_vals[i], i, reduce_vals[i]);
+    }
+
+    free(init_vals);
+    free(reduce_vals);
+}
+
+// MPI_Exscan(void* sendbuf, void* recvbuf, int count, MPI_Datatype datatype,
+//         MPI_Op op, MPI_Comm comm)
+//
+void exscan(int n)
+{
+    int rank, num_procs;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
+
+    int* init_vals = (int*)malloc(n*sizeof(int));
+    int* reduce_vals = (int*)malloc(n*sizeof(int));
+
+    initialize(init_vals, n);
+
+    MPI_Exscan(init_vals, reduce_vals, n, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+
+    for (int i = 0; i < n; i++)
+    {
+        printf("Rank %d, Orig Val[%d] = %d Sum Vals (Exscan)[%d] = %d\n", rank, i, init_vals[i], i, reduce_vals[i]);
+    }
+
+    free(init_vals);
+    free(reduce_vals);
+}
+
+
+// MPI_Reduce_scatter(const void *sendbuf, void *recvbuf, const int recvcounts[],
+//                     MPI_Datatype datatype, MPI_Op op, MPI_Comm comm)
+void reduce_scatter(int n)
+{
+    int rank, num_procs;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
+
+    int* init_vals = (int*)malloc(n*num_procs*sizeof(int));
+    int* reduce_vals = (int*)malloc(n*sizeof(int));
+    int* recvcounts = (int*)malloc(num_procs*sizeof(int));
+
+    for (int i = 0; i < num_procs; i++)
+    {
+        for (int j = 0; j < n; j++)
+        {
+            init_vals[i*n+j] = i;
+        }
+        recvcounts[i] = n;
+    }
+
+    MPI_Reduce_scatter(init_vals, reduce_vals, recvcounts, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+
+    for (int i = 0; i < n; i++)
+    {
+        printf("Rank %d, Reduce-Scatter[%d] = %d\n", rank, i, reduce_vals[i]);
+    }
+
+    free(init_vals);
+    free(reduce_vals);
+    free(recvcounts);
+}
+
+
 int main(int argc, char* argv[])
 {
     MPI_Init(&argc, &argv);
@@ -279,7 +369,7 @@ int main(int argc, char* argv[])
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
 
-    int n = 10;
+    int n = 1;
     if (argc > 1) n = atoi(argv[1]);
 
     //reduce(n);
@@ -295,6 +385,12 @@ int main(int argc, char* argv[])
     //allgather(n, 1);
     
     //alltoall(n);
+    
+    //scan(n);
+    
+    //exscan(n);
+
+    //reduce_scatter(n);
 
 
     return 0;
