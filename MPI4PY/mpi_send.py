@@ -6,8 +6,6 @@ from mpi4py import MPI
 import numpy as np
 
 if __name__ == "__main__":
-    MPI.Init()
-
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
 
@@ -18,6 +16,4 @@ if __name__ == "__main__":
         comm.send(size, dest=rank+1, tag=tag)
     else:
         size = comm.recv(source=rank-1, tag=tag)
-
-    MPI.Finalize()
 
