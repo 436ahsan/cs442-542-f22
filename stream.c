@@ -218,7 +218,11 @@ main()
     STREAM_TYPE		scalar;
     double		t, times[4][NTIMES];
 
-    int n_iter = STREAM_ACCESSES / STREAM_ARRAY_SIZE;
+    ssize_t stream_accesses = STREAM_ACCESSES;
+    if (STREAM_ARRAY_SIZE > stream_accesses)
+        stream_accesses = STREAM_ARRAY_SIZE;
+
+    int n_iter = stream_accesses / STREAM_ARRAY_SIZE;
 
     /* --- SETUP --- determine precision and check timing --- */
 
@@ -240,11 +244,11 @@ main()
 
     printf("Array size = %llu (elements), Offset = %d (elements)\n" , (unsigned long long) STREAM_ARRAY_SIZE, OFFSET);
     printf("Memory per array = %.1f MiB (= %.1f GiB).\n", 
-	BytesPerWord * ( (double) STREAM_ACCESSES / 1024.0/1024.0),
-	BytesPerWord * ( (double) STREAM_ACCESSES / 1024.0/1024.0/1024.0));
+	BytesPerWord * ( (double) stream_accesses / 1024.0/1024.0),
+	BytesPerWord * ( (double) stream_accesses / 1024.0/1024.0/1024.0));
     printf("Total memory required = %.1f MiB (= %.1f GiB).\n",
-	(3.0 * BytesPerWord) * ( (double) STREAM_ACCESSES / 1024.0/1024.),
-	(3.0 * BytesPerWord) * ( (double) STREAM_ACCESSES / 1024.0/1024./1024.));
+	(3.0 * BytesPerWord) * ( (double) stream_accesses / 1024.0/1024.),
+	(3.0 * BytesPerWord) * ( (double) stream_accesses / 1024.0/1024./1024.));
     printf("Each kernel will be executed %d times.\n", NTIMES);
     printf(" The *best* time for each kernel (excluding the first iteration)\n"); 
     printf(" will be used to compute the reported bandwidth.\n");
