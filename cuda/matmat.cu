@@ -1,5 +1,7 @@
 #include <cuda.h>
 #include "../timer.h"
+#include <cuda_runtime.h>
+#include "cublas_v2.h"
 
 #define TILE_WIDTH 32
 
@@ -187,6 +189,24 @@ int main(int argc, char* argv[])
     cudaMemcpy(h_C, d_C, size, cudaMemcpyDeviceToHost);
     tfinal = get_time() - t0;
     printf("MatrixMultTiledKernel Time %e, Size %e\n", tfinal, sum(h_C, n));
+
+
+    cublasHandle_t handle;
+    cublasCreate(&handle);
+    float alpha = 1.0;
+    float beta = 0.0;
+    int l_dim = n;
+
+    t0 = get_time();
+    cudaMemcpy(d_A, h_A, size, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_B, h_B, size, cudaMemcpyHostToDevice);
+    cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, n, n, n, &alpha, d_A,
+            l_dim, d_B, l_dim, &beta, d_C, l_dim);
+    cudaMemcpy(h_C, d_C, size, cudaMemcpyDeviceToHost);
+    tfinal = get_time() - t0;
+    printf("CUBLAS SGEMM Time %e, Size %e\n", tfinal, sum(h_C, n));
+
+    cublasDestroy(handle);
 
     cudaFree(d_A);
     cudaFree(d_B);
