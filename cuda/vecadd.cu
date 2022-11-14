@@ -27,11 +27,22 @@ int main(int argc, char* argv[])
     float *h_A, *h_B, *h_C;
     double t0, tfinal;
 
+    if (argc <= 1)
+    {
+        printf("Pass Vector Size as Command Line Arg\n");
+        return 0;
+    }
+
     int n = atoi(argv[1]);
 
-    h_A = (float*)malloc(n*sizeof(float));
-    h_B = (float*)malloc(n*sizeof(float));
-    h_C = (float*)malloc(n*sizeof(float));
+    cudaMallocHost((void**)&h_A, n*sizeof(float));
+    cudaMallocHost((void**)&h_B, n*sizeof(float));
+    cudaMallocHost((void**)&h_C, n*sizeof(float));
+
+    float *d_A, *d_B, *d_C;
+    cudaMalloc((void**)&d_A, n*sizeof(float));
+    cudaMalloc((void**)&d_B, n*sizeof(float));
+    cudaMalloc((void**)&d_C, n*sizeof(float));
 
     for (int i = 0; i < n; i++)
     {
@@ -44,11 +55,6 @@ int main(int argc, char* argv[])
     tfinal = get_time() - t0;
     printf("VecAdd Time %e, Sum %e\n", tfinal, sum(n, h_C));
 
-
-    float *d_A, *d_B, *d_C;
-    cudaMalloc((void**)&d_A, n*sizeof(float));
-    cudaMalloc((void**)&d_B, n*sizeof(float));
-    cudaMalloc((void**)&d_C, n*sizeof(float));
 
     // Copy host array to device array
     t0 = get_time();
@@ -67,9 +73,9 @@ int main(int argc, char* argv[])
     cudaFree(d_B);
     cudaFree(d_C);
 
-    free(h_A);
-    free(h_B);
-    free(h_C);
+    cudaFreeHost(h_A);
+    cudaFreeHost(h_B);
+    cudaFreeHost(h_C);
 
     return 0;
 }
