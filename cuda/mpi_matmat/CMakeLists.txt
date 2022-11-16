@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.17 FATAL_ERROR)
-project(matmat LANGUAGES CUDA CXX VERSION 0.1.0)
+project(cannon LANGUAGES CUDA CXX VERSION 0.1.0)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
 find_package(MPI REQUIRED)
 include_directories(${MPI_INCLUDE_PATH})
-set(matmat_INCDIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
+set(cannon_INCDIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 
 cmake_policy(SET CMP0104 OLD)
@@ -56,7 +56,7 @@ enable_testing()
 
 add_subdirectory(src)
 
-target_compile_options(heterobench PRIVATE
+target_compile_options(cannon PRIVATE
     $<$<COMPILE_LANGUAGE:CUDA>: # Flags for CUDA Objects
     -lineinfo
     -Xcompiler -Wall
@@ -66,7 +66,7 @@ target_compile_options(heterobench PRIVATE
     >
     )
 
-set_property(TARGET heterobench PROPERTY CUDA_SEPARABLE_COMPILATION ON)
+set_property(TARGET cannon PROPERTY CUDA_SEPARABLE_COMPILATION ON)
 
 if (BUILD_EXAMPLES)
       add_subdirectory(examples)
