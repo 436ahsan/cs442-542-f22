@@ -192,8 +192,16 @@ int main(int argc, char* argv[])
 
     ParMat A;
     char* filename = argv[1];
+    double t0, tfinal;
+
+    MPI_Barrier(MPI_COMM_WORLD);
+    t0 = MPI_Wtime();
     readParMatrix(filename, A);
+    tfinal = MPI_Wtime() - t0;
+    MPI_Reduce(&tfinal, &t0, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+    if (rank == 0) printf("I/O Time : %e\n", t0);
     
+    /*
     form_comm(A);
     graph_create(A);
 
@@ -201,7 +209,6 @@ int main(int argc, char* argv[])
     std::vector<double> b(A.local_rows);
     std::vector<double> b_graph(A.local_rows);
     std::vector<double> x_dist(A.off_proc_num_cols);
-    double t0, tfinal;
 
     par_spmv(A, x, b, x_dist);
     par_graph_spmv(A, x, b_graph, x_dist);
@@ -231,6 +238,8 @@ int main(int argc, char* argv[])
     tfinal = (MPI_Wtime() - t0) / n_iter;
     MPI_Reduce(&tfinal, &t0, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
     if (rank == 0) printf("Par Graph SpMV Time %e\n", t0);
+
+    */
 
     MPI_Finalize();
 }

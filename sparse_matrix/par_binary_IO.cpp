@@ -102,14 +102,13 @@ void readParMatrix(const char* filename, ParMat& A)
 
     pos = (4 + A.first_row) * sizeof_int32;
     if (fseek(ifile, pos, SEEK_SET)) printf("Error seeking pos\n"); 
-    for (int i = 0; i < A.local_rows; i++)
-    {
-        n_items_read = fread(&idx, sizeof_int32, 1, ifile);
+    n_items_read = fread(row_sizes.data(), sizeof_int32, A.local_rows, ifile);
         if (n_items_read == EOF) printf("EOF reading code\n");
         if (ferror(ifile)) printf("Error reading row_size\n");
-        if (is_little_endian) endian_swap(&idx);
-        row_sizes[i] = idx;
-        nnz += idx;
+    for (int i = 0; i < A.local_rows; i++)
+    {
+        if (is_little_endian) endian_swap(&(row_sizes[i]));
+        nnz += row_sizes[i];
     }
 
     long first_nnz = 0;
@@ -120,24 +119,22 @@ void readParMatrix(const char* filename, ParMat& A)
 
     pos = (4 + A.global_rows + first_nnz) * sizeof_int32;
     if (fseek(ifile, pos, SEEK_SET)) printf("Error seeking pos\n"); 
-    for (int i = 0; i < nnz; i++)
-    {
-        n_items_read = fread(&idx, sizeof_int32, 1, ifile);
+    n_items_read = fread(col_indices.data(), sizeof_int32, nnz, ifile);
         if (n_items_read == EOF) printf("EOF reading code\n");
         if (ferror(ifile)) printf("Error reading col idx\n");
-        if (is_little_endian) endian_swap(&idx);
-        col_indices[i] = idx;
+    for (int i = 0; i < nnz; i++)
+    {
+        if (is_little_endian) endian_swap(&(col_indices[i]));
     }
 
     pos = (4 + A.global_rows + global_nnz) * sizeof_int32 + (first_nnz * sizeof_dbl);
     if (fseek(ifile, pos, SEEK_SET)) printf("Error seeking pos\n"); 
-    for (int i = 0; i < nnz; i++)
-    {
-        n_items_read = fread(&val, sizeof_dbl, 1, ifile);
+    n_items_read = fread(vals.data(), sizeof_dbl, nnz, ifile);
         if (n_items_read == EOF) printf("EOF reading code\n");
         if (ferror(ifile)) printf("Error reading value\n");
-        if (is_little_endian) endian_swap(&val);
-        vals[i] = val;
+    for (int i = 0; i < nnz; i++)
+    {
+        if (is_little_endian) endian_swap(&(vals[i]));
     }
     fclose(ifile);
 

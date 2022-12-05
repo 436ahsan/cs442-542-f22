@@ -33,10 +33,12 @@ void matmult(double* A, double* B, double* C, int n)
 
 void hello_world()
 {
-#pragma omp parallel num_threads(4)
+    int thread_id, num_threads;
+#pragma omp parallel num_threads(16) 
 {
-    int thread_id = omp_get_thread_num();
-    int num_threads = omp_get_num_threads();
+    thread_id = omp_get_thread_num();
+    usleep(10);
+    num_threads = omp_get_num_threads();
     printf("Hello world from thread %d of %d\n", thread_id, num_threads);
 }
 }
@@ -65,9 +67,16 @@ void matmult_oor(double* A, double* B, double* C, int n)
 
 double sum(double* A, int n)
 {
+    double global_sum = 0;
+#pragma omp parallel
+{
     double s = 0;
-#pragma omp parallel for reduction(+:s)
-    for (int i = 0; i < n; i++)
+    int thread_id = omp_get_thread_num();
+    int num_threads = omp_get_num_threads();
+    int num_i = n / num_threads;
+    int first_i = num_i * thread_id;
+
+    for (int i = first_i; i < first_i + num_i; i++)
     {
         for (int j = 0; j < n; j++)
         {
@@ -75,7 +84,13 @@ double sum(double* A, int n)
         }
     }
 
-    return s;
+#pragma omp critical
+    {
+        global_sum += s;
+    }
+}
+
+    return global_sum;
 }
 
 int main(int argc, char* argv[])
@@ -101,12 +116,12 @@ int main(int argc, char* argv[])
     }
 
     // Calculate C = A*B
-    matmult(A, B, C, n);
+    /*matmult(A, B, C, n);
     double t0 = get_time();
     for (int i = 0; i < n_iter; i++)
         matmult(A, B, C, n);
     double tfinal = (get_time() - t0) / n_iter;
-    printf("Time to multiply two %dx%d matrices: %e\n", n, n, tfinal);
+    printf("Time to multiply two %dx%d matrices: %e\n", n, n, tfinal);*/
 
 
     hello_world();
